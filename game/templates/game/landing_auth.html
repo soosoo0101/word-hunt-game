@@ -1,0 +1,151 @@
+{% extends "game/base.html" %}
+{% load static %}
+
+{% block title %}Word Hunt — Play with Friends!{% endblock %}
+
+{% block content %}
+<div class="landing-bg" style="position: relative;">
+    
+    <!-- Top Right Profile Button & Dropdown -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+        <button type="button" id="btn-profile" class="btn btn-secondary" style="border-radius: 50%; width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.2);">
+            👤
+        </button>
+        
+        <!-- Profile Dropdown Modal -->
+        <div id="profile-dropdown" class="glass-card" style="display: none; position: absolute; top: 60px; right: 0; width: 260px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); transform-origin: top right;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">👑</div>
+                <h3 style="font-family: var(--font-display); color: var(--text-primary); margin-bottom: 4px; font-size: 1.3rem;">{{ username }}</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Word Hunter</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); padding: 16px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Total Earned Seconds</span>
+                <br>
+                <span style="font-size: 2.2rem; font-weight: bold; color: var(--accent-green); font-family: var(--font-display); text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);">{{ total_earned_seconds }}s</span>
+            </div>
+            
+            <a href="{% url 'logout' %}" class="btn btn-secondary" style="width: 100%; text-decoration: none; text-align: center; background: rgba(248, 113, 113, 0.1); color: #F87171; border-color: rgba(248, 113, 113, 0.2); justify-content: center;">
+                <span class="btn-text">Sign Out</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Floating word bubbles (decorative) -->
+    <div class="bubble bubble-1">hunt</div>
+    <div class="bubble bubble-2">find</div>
+    <div class="bubble bubble-3">word</div>
+    <div class="bubble bubble-4">play</div>
+    <div class="bubble bubble-5">win!</div>
+    <div class="bubble bubble-6">go!</div>
+
+    <div class="landing-container">
+        <div class="logo-section">
+            <div class="logo-icon">🔍</div>
+            <h1 class="logo-title">Word Hunt</h1>
+            <p class="logo-subtitle">Welcome back, <strong style="color: var(--text-primary);">{{ username }}</strong>! Ready to hunt?</p>
+        </div>
+
+        <div class="card glass-card">
+            {% if error %}
+            <div class="error-banner" id="error-banner">
+                <span>⚠️ {{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'landing' %}">
+                {% csrf_token %}
+                <div class="button-group">
+                    <button type="submit" name="action" value="create" class="btn btn-primary" id="btn-create">
+                        <span class="btn-icon">🎮</span>
+                        <span class="btn-text">Create Room</span>
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" id="btn-join-toggle">
+                        <span class="btn-icon">🤝</span>
+                        <span class="btn-text">Join Room</span>
+                    </button>
+                </div>
+
+                <!-- Join Room panel (hidden by default) -->
+                <div class="join-panel" id="join-panel">
+                    <div class="input-group">
+                        <label for="room_code" class="input-label">Room Code</label>
+                        <input
+                            type="text"
+                            id="room_code"
+                            name="room_code"
+                            class="text-input code-input"
+                            placeholder="ABC"
+                            maxlength="3"
+                            autocomplete="off"
+                            style="text-transform: uppercase; text-align: center; letter-spacing: 8px; font-size: 1.8rem;"
+                        >
+                    </div>
+                    <button type="submit" name="action" value="join" class="btn btn-accent" id="btn-join-submit">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Let's Go!</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <p class="footer-note">Spend time with your 💖 Chanks</p>
+    </div>
+</div>
+
+<script>
+    // Profile Dropdown Toggle
+    const btnProfile = document.getElementById('btn-profile');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (btnProfile && profileDropdown) {
+        btnProfile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (profileDropdown.style.display === 'none') {
+                profileDropdown.style.display = 'block';
+                profileDropdown.style.animation = 'slideUp 0.2s ease-out';
+            } else {
+                profileDropdown.style.display = 'none';
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && e.target !== btnProfile) {
+                profileDropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // Toggle join panel
+    const joinToggle = document.getElementById('btn-join-toggle');
+    const joinPanel = document.getElementById('join-panel');
+    let joinVisible = false;
+
+    if (joinToggle) {
+        joinToggle.addEventListener('click', () => {
+            joinVisible = !joinVisible;
+            joinPanel.classList.toggle('visible', joinVisible);
+            if (joinVisible) {
+                document.getElementById('room_code').focus();
+            }
+        });
+    }
+
+    // Auto-uppercase room code
+    const codeInput = document.getElementById('room_code');
+    if (codeInput) {
+        codeInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+        });
+    }
+
+    // Dismiss error banner
+    const errorBanner = document.getElementById('error-banner');
+    if (errorBanner) {
+        setTimeout(() => errorBanner.classList.add('fade-out'), 4000);
+    }
+</script>
+{% endblock %}

@@ -362,6 +362,21 @@ class GameConsumer(AsyncWebsocketConsumer):
         if winner and winner in room.players:
             winner_time = round(room.players[winner].time_bank, 1)
 
+            # Increment total_earned_seconds in DB
+            from channels.db import database_sync_to_async
+            from django.contrib.auth.models import User
+            
+            @database_sync_to_async
+            def update_winner_stats(username, time_left):
+                try:
+                    user = User.objects.get(username=username)
+                    user.profile.total_earned_seconds += int(time_left)
+                    user.profile.save()
+                except (User.DoesNotExist, Exception):
+                    pass
+            
+            await update_winner_stats(winner, winner_time)
+
         await self.channel_layer.group_send(
             self.group_name,
             {

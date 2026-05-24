@@ -4,51 +4,89 @@ Handles landing page, room creation/joining, lobby, and game page rendering.
 """
 
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from .game_manager import ROOMS, GameRoom, generate_room_code
-
 
 def landing(request):
     """Landing page — username entry + create/join room."""
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        if not username:
-            return render(request, 'game/landing.html', {'error': 'Please enter a username'})
-        if len(username) > 15:
-            return render(request, 'game/landing.html', {'error': 'Username must be 15 characters or less'})
-
-        # Normalize: first letter uppercase, rest lowercase → "soo" = "Soo" = "SOO"
-        username = username.capitalize()
-
-        # Store username in session
-        request.session['username'] = username
-
-        action = request.POST.get('action')
-        if action == 'create':
-            return redirect('create_room')
-        elif action == 'join':
-            room_code = request.POST.get('room_code', '').strip().upper()
-            if not room_code or len(room_code) != 3:
-                return render(request, 'game/landing.html', {
-                    'error': 'Please enter a valid 3-letter room code',
-                    'username': username,
-                })
-            return redirect('join_room', room_code=room_code)
-
     context = {}
-    # Check for session-stored errors from redirects
     if 'error' in request.session:
         context['error'] = request.session.pop('error')
 
-    return render(request, 'game/landing.html', context)
+    if request.user.is_authenticated:
+        # User is logged in, show profile stats and room actions
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            if action == 'create':
+                return redirect('create_room')
+            elif action == 'join':
+                room_code = request.POST.get('room_code', '').strip().upper()
+                if not room_code or len(room_code) != 3:
+                    context['error'] = 'Please enter a valid 3-letter room code'
+                else:
+                    return redirect('join_room', room_code=room_code)
+        
+        # Pass profile data
+        context['username'] = request.user.username
+        context['total_earned_seconds'] = request.user.profile.total_earned_seconds
+        return render(request, 'game/landing_auth.html', context)
+    else:
+        # Guest, show login/register
+        return render(request, 'game/landing.html', context)
 
 
+def register_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip().capitalize()
+        pin = request.POST.get('pin', '').strip()
+
+        if not username or len(username) > 10:
+            request.session['error'] = 'Username must be 1-10 characters'
+            return redirect('landing')
+        
+        if not pin or len(pin) > 4:
+            request.session['error'] = 'PIN must be maximum 4 characters'
+            return redirect('landing')
+
+        if User.objects.filter(username=username).exists():
+            request.session['error'] = 'Username already taken'
+            return redirect('landing')
+
+        user = User.objects.create_user(username=username, password=pin)
+        login(request, user)
+        # Set session to not expire on browser close (stay logged in)
+        request.session.set_expiry(60 * 60 * 24 * 365) # 1 year
+        return redirect('landing')
+    return redirect('landing')
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip().capitalize()
+        pin = request.POST.get('pin', '').strip()
+
+        user = authenticate(request, username=username, password=pin)
+        if user is not None:
+            login(request, user)
+            request.session.set_expiry(60 * 60 * 24 * 365) # 1 year
+            return redirect('landing')
+        else:
+            request.session['error'] = 'Invalid username or PIN'
+            return redirect('landing')
+    return redirect('landing')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('landing')
+
+
+@login_required(login_url='/')
 def create_room(request):
     """Create a new game room and redirect to lobby."""
-    username = request.session.get('username')
-    if not username:
-        return redirect('landing')
-
+    username = request.user.username
     room_code = generate_room_code()
     room = GameRoom(room_code, creator=username)
     ROOMS[room_code] = room
@@ -56,13 +94,12 @@ def create_room(request):
     return redirect('lobby', room_code=room_code)
 
 
+@login_required(login_url='/')
 def join_room(request, room_code):
     """Validate room code and redirect to lobby."""
-    username = request.session.get('username')
-    if not username:
-        return redirect('landing')
-
+    username = request.user.username
     room_code = room_code.upper()
+    
     if room_code not in ROOMS:
         request.session['error'] = f'Room "{room_code}" not found'
         return redirect('landing')
@@ -79,20 +116,18 @@ def join_room(request, room_code):
         request.session['error'] = 'Room is full (max 5 players)'
         return redirect('landing')
 
-    # Check for duplicate username in this room
+    # Check for duplicate username in this room (shouldn't happen with unique users unless logic error, but good to keep)
     if username in room.players and room.players[username].is_connected:
-        request.session['error'] = f'"{username}" is already in the room. Pick a different name!'
-        return redirect('landing')
+        # Since we use real accounts now, this means they might have 2 tabs open. Just redirect to lobby.
+        return redirect('lobby', room_code=room_code)
 
     return redirect('lobby', room_code=room_code)
 
 
+@login_required(login_url='/')
 def lobby(request, room_code):
     """Lobby/waiting room page."""
-    username = request.session.get('username')
-    if not username:
-        return redirect('landing')
-
+    username = request.user.username
     room_code = room_code.upper()
     if room_code not in ROOMS:
         return redirect('landing')
@@ -106,12 +141,10 @@ def lobby(request, room_code):
     })
 
 
+@login_required(login_url='/')
 def game_view(request, room_code):
     """Main game board page."""
-    username = request.session.get('username')
-    if not username:
-        return redirect('landing')
-
+    username = request.user.username
     room_code = room_code.upper()
     if room_code not in ROOMS:
         return redirect('landing')

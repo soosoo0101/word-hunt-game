@@ -21,180 +21,98 @@
         </div>
 
         <div class="card glass-card">
-            <form method="post" action="{% url 'landing' %}" id="landing-form">
+            {% if error %}
+            <div class="error-banner" id="error-banner">
+                <span>⚠️ {{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">Login</button>
+                <button class="auth-tab" id="tab-register">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form method="post" action="{% url 'login' %}" id="form-login">
                 {% csrf_token %}
-
-                {% if error %}
-                <div class="error-banner" id="error-banner">
-                    <span>⚠️ {{ error }}</span>
+                <div class="input-group">
+                    <label for="login-username" class="input-label">Username</label>
+                    <input type="text" id="login-username" name="username" class="text-input" placeholder="Your Name" maxlength="10" autocomplete="off" required>
                 </div>
-                {% endif %}
-
-                <!-- Step 1: Username -->
-                <div id="step-username">
-                    <div class="input-group">
-                        <label for="username" class="input-label">What's your name?</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            class="text-input"
-                            placeholder="Enter your name..."
-                            maxlength="15"
-                            value="{{ username|default:'' }}"
-                            autocomplete="off"
-                            required
-                        >
-                    </div>
-
-                    <button type="button" class="btn btn-primary" id="btn-set-name" style="width: 100%;">
-                        <span class="btn-icon">✨</span>
-                        <span class="btn-text">Continue</span>
-                    </button>
+                <div class="input-group">
+                    <label for="login-pin" class="input-label">4-Letter PIN</label>
+                    <input type="password" id="login-pin" name="pin" class="text-input" placeholder="****" maxlength="4" autocomplete="off" required>
                 </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span class="btn-text">Login</span>
+                </button>
+            </form>
 
-                <!-- Step 2: Create or Join (hidden until username set) -->
-                <div id="step-actions" style="display: none;">
-                    <div class="username-display">
-                        <span class="username-greeting">Playing as</span>
-                        <span class="username-tag" id="username-tag"></span>
-                        <button type="button" class="btn-change" id="btn-change-name">✏️ Change</button>
-                    </div>
-
-                    <div class="button-group">
-                        <button type="submit" name="action" value="create" class="btn btn-primary" id="btn-create">
-                            <span class="btn-icon">🎮</span>
-                            <span class="btn-text">Create Room</span>
-                        </button>
-
-                        <button type="button" class="btn btn-secondary" id="btn-join-toggle">
-                            <span class="btn-icon">🚪</span>
-                            <span class="btn-text">Join Room</span>
-                        </button>
-                    </div>
-
-                    <!-- Join Room panel (hidden by default) -->
-                    <div class="join-panel" id="join-panel">
-                        <div class="input-group">
-                            <label for="room_code" class="input-label">Room Code</label>
-                            <input
-                                type="text"
-                                id="room_code"
-                                name="room_code"
-                                class="text-input code-input"
-                                placeholder="ABC"
-                                maxlength="3"
-                                autocomplete="off"
-                                style="text-transform: uppercase; text-align: center; letter-spacing: 8px; font-size: 1.8rem;"
-                            >
-                        </div>
-                        <button type="submit" name="action" value="join" class="btn btn-accent" id="btn-join-submit">
-                            <span class="btn-icon">🚀</span>
-                            <span class="btn-text">Let's Go!</span>
-                        </button>
-                    </div>
+            <!-- Register Form (hidden) -->
+            <form method="post" action="{% url 'register' %}" id="form-register" style="display: none;">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="reg-username" class="input-label">Choose a Username</label>
+                    <input type="text" id="reg-username" name="username" class="text-input" placeholder="Max 10 characters" maxlength="10" autocomplete="off" required>
                 </div>
+                <div class="input-group">
+                    <label for="reg-pin" class="input-label">Create a 4-Letter PIN</label>
+                    <input type="password" id="reg-pin" name="pin" class="text-input" placeholder="Maximum 4 chars" maxlength="4" autocomplete="off" required>
+                </div>
+                <button type="submit" class="btn btn-accent" style="width: 100%;">
+                    <span class="btn-text">Create Account</span>
+                </button>
             </form>
         </div>
 
-        <p class="footer-note">Made with 💖 for friends across the world</p>
+        <p class="footer-note">Spend time with your 💖 Chanks</p>
     </div>
 </div>
 
+<style>
+    .auth-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .auth-tab {
+        flex: 1;
+        padding: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-muted);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .auth-tab.active {
+        background: rgba(255,255,255,0.15);
+        color: var(--text-primary);
+        border-color: var(--accent-cyan);
+    }
+</style>
+
 <script>
-    const usernameInput = document.getElementById('username');
-    const stepUsername = document.getElementById('step-username');
-    const stepActions = document.getElementById('step-actions');
-    const usernameTag = document.getElementById('username-tag');
-    const btnSetName = document.getElementById('btn-set-name');
-    const btnChangeName = document.getElementById('btn-change-name');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
 
-    function capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    }
-
-    function showInputError(msg) {
-        usernameInput.style.borderColor = '#F87171';
-        usernameInput.style.boxShadow = '0 0 0 4px rgba(248,113,113,0.15)';
-        // Show error below input
-        let err = document.getElementById('inline-error');
-        if (!err) {
-            err = document.createElement('div');
-            err.id = 'inline-error';
-            err.style.cssText = 'color: #F87171; font-size: 0.8rem; margin-top: 6px; font-weight: 600;';
-            usernameInput.parentNode.appendChild(err);
-        }
-        err.textContent = msg;
-        setTimeout(() => {
-            usernameInput.style.borderColor = '';
-            usernameInput.style.boxShadow = '';
-            if (err) err.remove();
-        }, 3000);
-    }
-
-    // Step 1 → Step 2: Validate and set username
-    btnSetName.addEventListener('click', () => {
-        let name = usernameInput.value.trim();
-
-        if (!name) {
-            showInputError('Please enter your name');
-            usernameInput.focus();
-            return;
-        }
-        if (name.length < 2) {
-            showInputError('Name must be at least 2 characters');
-            usernameInput.focus();
-            return;
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(name)) {
-            showInputError('Only letters and numbers allowed');
-            usernameInput.focus();
-            return;
-        }
-
-        // Capitalize to match server normalization
-        name = capitalize(name);
-        usernameInput.value = name;
-
-        usernameTag.textContent = name;
-        stepUsername.style.display = 'none';
-        stepActions.style.display = 'block';
-        stepActions.style.animation = 'slideUp 0.3s ease-out';
+    tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        formLogin.style.display = 'block';
+        formRegister.style.display = 'none';
     });
 
-    // Enter key on username field
-    usernameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            btnSetName.click();
-        }
-    });
-
-    // Change name → go back to step 1
-    btnChangeName.addEventListener('click', () => {
-        stepActions.style.display = 'none';
-        stepUsername.style.display = 'block';
-        usernameInput.focus();
-        usernameInput.select();
-    });
-
-    // Toggle join panel
-    const joinToggle = document.getElementById('btn-join-toggle');
-    const joinPanel = document.getElementById('join-panel');
-    let joinVisible = false;
-
-    joinToggle.addEventListener('click', () => {
-        joinVisible = !joinVisible;
-        joinPanel.classList.toggle('visible', joinVisible);
-        if (joinVisible) {
-            document.getElementById('room_code').focus();
-        }
-    });
-
-    // Auto-uppercase room code
-    const codeInput = document.getElementById('room_code');
-    codeInput.addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+    tabRegister.addEventListener('click', () => {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        formRegister.style.display = 'block';
+        formLogin.style.display = 'none';
     });
 
     // Dismiss error banner
@@ -202,5 +120,16 @@
     if (errorBanner) {
         setTimeout(() => errorBanner.classList.add('fade-out'), 4000);
     }
+
+    // Capitalize username logic
+    document.querySelectorAll('input[name="username"]').forEach(input => {
+        input.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+            if (val.length > 0) {
+                val = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+            }
+            e.target.value = val;
+        });
+    });
 </script>
 {% endblock %}

@@ -349,6 +349,7 @@
     function handlePlayerFound(data) {
         // Update scoreboard
         if (data.players) {
+            if (gameState) gameState.players = data.players;
             renderScoreboard(data.players, gameState ? gameState.current_picker : '');
         }
 
@@ -485,16 +486,24 @@
                 return;
             }
 
-            const elapsed = (Date.now() - myTimerStart) / 1000;
-            const remaining = Math.max(0, myTimeBank - elapsed);
-
-            // Update my timer in scoreboard
-            const myTimeEl = document.querySelector(`.score-time[data-player="${USERNAME}"]`);
-            if (myTimeEl) {
-                myTimeEl.textContent = remaining.toFixed(1) + 's';
-                myTimeEl.className = 'score-time';
-                if (remaining <= 10) myTimeEl.classList.add('time-critical');
-                else if (remaining <= 30) myTimeEl.classList.add('time-low');
+            // Sync all players' timers locally
+            if (gameState && gameState.players) {
+                gameState.players.forEach(p => {
+                    // Skip the current picker, eliminated players, and those who already found it
+                    if (p.username === gameState.current_picker) return;
+                    if (p.is_eliminated || p.found_current_word) return;
+                    
+                    // Decrement locally
+                    p.time_bank = Math.max(0, p.time_bank - 0.1);
+                    
+                    const timeEl = document.querySelector(`.score-time[data-player="${escapeHtml(p.username)}"]`);
+                    if (timeEl) {
+                        timeEl.textContent = p.time_bank.toFixed(1) + 's';
+                        timeEl.className = 'score-time';
+                        if (p.time_bank <= 10) timeEl.classList.add('time-critical');
+                        else if (p.time_bank <= 30) timeEl.classList.add('time-low');
+                    }
+                });
             }
         }, 100);
     }
