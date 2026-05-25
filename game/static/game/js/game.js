@@ -277,6 +277,8 @@
     }
 
     // --- Turn Banner ---
+    let pickingOverlayShown = false;
+
     function updateTurnBanner(currentPicker, state) {
         const banner = document.getElementById('turn-banner');
         const text = document.getElementById('turn-text');
@@ -284,6 +286,10 @@
 
         stopPickTimer();
         stopShowingTimer();
+
+        if (state !== 'picking') {
+            pickingOverlayShown = false;
+        }
 
         if (state === 'picking') {
             startPickTimer(currentPicker);
@@ -342,7 +348,21 @@
         const banner = document.getElementById('turn-banner');
         const text = document.getElementById('turn-text');
 
-        if (currentPicker === USERNAME && timeLeft === 20) playSound('turn');
+        if (currentPicker === USERNAME && !pickingOverlayShown) {
+            pickingOverlayShown = true;
+            playSound('turn');
+            
+            // Trigger intense visual and haptic feedback
+            const overlay = document.getElementById('your-turn-overlay');
+            if (overlay) {
+                overlay.classList.add('visible');
+                setTimeout(() => overlay.classList.remove('visible'), 2000);
+            }
+            if (navigator.vibrate) {
+                // Vibrate pattern: short pulse, pause, short pulse
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
 
         const updateText = () => {
             if (currentPicker === USERNAME) {
