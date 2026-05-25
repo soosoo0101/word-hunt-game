@@ -233,7 +233,7 @@ WORD_FONTS = [
 ]
 
 
-def get_random_board(n=30):
+def get_random_board(n=42):
     """
     Generate a board of n random words placed on a grid with jitter.
     Words get their own cell so they don't overlap.
@@ -244,9 +244,9 @@ def get_random_board(n=30):
     cols = 3
     rows = (len(words) + cols - 1) // cols  # ceiling division
 
-    # Cell size in percentage
-    cell_w = 96.0 / cols
-    cell_h = 96.0 / rows
+    # Cell size in percentage — tighter spacing
+    cell_w = 98.0 / cols
+    cell_h = 98.0 / rows
 
     # Create shuffled grid positions
     positions = []
@@ -260,16 +260,16 @@ def get_random_board(n=30):
         row, col = positions[i]
 
         # Base position for this cell
-        base_x = 2 + col * cell_w
-        base_y = 1 + row * cell_h
+        base_x = 1 + col * cell_w
+        base_y = 0.5 + row * cell_h
 
         # Random jitter within cell
-        jitter_x = random.uniform(0, cell_w * 0.15)
-        jitter_y = random.uniform(0, cell_h * 0.3)
+        jitter_x = random.uniform(0, cell_w * 0.12)
+        jitter_y = random.uniform(0, cell_h * 0.2)
 
         board.append({
             "word": word,
-            "fontSize": random.randint(14, 22),
+            "fontSize": random.randint(13, 20),
             "color": random.choice(WORD_COLORS),
             "font": random.choice(WORD_FONTS),
             "rotation": random.randint(-12, 12),
@@ -278,3 +278,4 @@ def get_random_board(n=30):
         })
 
     return board
+
