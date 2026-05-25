@@ -39,6 +39,11 @@ def landing(request):
         context['third_places'] = profile.third_places
         context['fourth_places'] = profile.fourth_places
         context['fifth_places'] = profile.fifth_places
+        
+        # Calculate global rank
+        global_rank = User.objects.filter(profile__total_earned_seconds__gt=profile.total_earned_seconds).count() + 1
+        context['global_rank'] = global_rank
+        
         return render(request, 'game/landing_auth.html', context)
     else:
         # Guest, show login/register
