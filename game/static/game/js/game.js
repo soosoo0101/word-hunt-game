@@ -336,9 +336,8 @@
     function startPickTimer(currentPicker) {
         stopPickTimer();
         let timeLeft = 20;
-        if (gameState && gameState.pick_start_time) {
-            const elapsed = (Date.now() / 1000) - gameState.pick_start_time;
-            timeLeft = Math.max(0, Math.floor(20 - elapsed));
+        if (gameState && typeof gameState.pick_time_remaining !== 'undefined') {
+            timeLeft = Math.max(0, Math.floor(gameState.pick_time_remaining));
         }
         const banner = document.getElementById('turn-banner');
         const text = document.getElementById('turn-text');
@@ -579,7 +578,7 @@
         const lbEl = document.getElementById('leaderboard');
         lbEl.innerHTML = '';
 
-        const rankEmojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        const rankEmojis = ['🥇', '🥈', '🥉', '🥚', '🩲'];
 
         data.leaderboard.forEach((entry, idx) => {
             const row = document.createElement('div');

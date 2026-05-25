@@ -490,7 +490,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             'board': event['board'],
             'room_code': event['room_code'],
             'creator': event['creator'],
-            'pick_start_time': event.get('pick_start_time'),
+            'pick_time_remaining': event.get('pick_time_remaining'),
         }))
 
     async def game_over(self, event):

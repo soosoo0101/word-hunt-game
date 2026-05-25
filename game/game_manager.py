@@ -300,6 +300,11 @@ class GameRoom:
 
     def get_game_state(self):
         """Get the full serializable game state for broadcast."""
+        pick_time_remaining = 20
+        if self.state == PICKING and self.pick_start_time:
+            elapsed = time.time() - self.pick_start_time
+            pick_time_remaining = max(0, 20 - elapsed)
+
         return {
             'state': self.state,
             'players': self.get_player_list(),
@@ -309,7 +314,7 @@ class GameRoom:
             'board': self.board,
             'room_code': self.room_code,
             'creator': self.creator,
-            'pick_start_time': self.pick_start_time,
+            'pick_time_remaining': pick_time_remaining,
         }
 
     def get_leaderboard(self):
