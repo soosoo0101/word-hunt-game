@@ -702,8 +702,8 @@ html, body {
 
 .score-card {
     flex: 0 0 auto;
-    min-width: 85px;
-    padding: 10px 14px;
+    min-width: 95px;
+    padding: 12px 16px;
     background: rgba(30, 30, 45, 0.7);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -740,18 +740,18 @@ html, body {
 
 .score-name {
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 85px;
+    max-width: 95px;
 }
 
 .score-time {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.45rem;
     font-weight: 700;
     color: var(--accent-cyan);
     margin: 2px 0;
@@ -772,7 +772,7 @@ html, body {
 }
 
 .score-words {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
 }
 
