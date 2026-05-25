@@ -16,5 +16,28 @@
 <body>
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
+
+    <!-- Screen Wake Lock -->
+    <script>
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Screen Wake Lock acquired');
+                }
+            } catch (err) {
+                console.warn('Wake Lock error:', err);
+            }
+        }
+        
+        requestWakeLock();
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+    </script>
 </body>
 </html>
