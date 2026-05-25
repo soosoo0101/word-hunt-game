@@ -4,6 +4,8 @@ Handles landing page, room creation/joining, lobby, and game page rendering.
 """
 
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -158,4 +160,32 @@ def game_view(request, room_code):
     return render(request, 'game/game.html', {
         'room_code': room_code,
         'username': username,
+    })
+
+
+def api_leaderboard(request):
+    """JSON endpoint for paginated global leaderboard."""
+    users = User.objects.select_related('profile').order_by('-profile__total_earned_seconds')
+    paginator = Paginator(users, 25)
+    page_num = request.GET.get('page', 1)
+    page = paginator.get_page(page_num)
+
+    data = []
+    for u in page:
+        if not hasattr(u, 'profile'):
+            continue
+        data.append({
+            'username': u.username,
+            'total_earned_seconds': u.profile.total_earned_seconds,
+            'first': u.profile.first_places,
+            'second': u.profile.second_places,
+            'third': u.profile.third_places,
+            'fourth': u.profile.fourth_places,
+            'fifth': u.profile.fifth_places,
+        })
+
+    return JsonResponse({
+        'players': data,
+        'has_next': page.has_next(),
+        'next_page_number': page.next_page_number() if page.has_next() else None
     })
