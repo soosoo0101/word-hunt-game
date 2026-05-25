@@ -13,7 +13,7 @@
     <div class="game-header" id="game-header">
         <div class="header-top">
             <span class="header-room-code"><i class="ph-duotone ph-magnifying-glass" style="color: #67E8F9;"></i> {{ room_code }}</span>
-            <button class="btn-exit" onclick="window.location.href='/'"><i class="ph-duotone ph-x"></i> Exit</button>
+            <button class="btn-exit" onclick="document.getElementById('exit-overlay').classList.add('visible')"><i class="ph-duotone ph-x"></i> Exit</button>
         </div>
         <div class="scoreboard" id="scoreboard">
             <!-- Player cards populated by JS -->
@@ -32,13 +32,25 @@
         </div>
     </div>
 
-    <!-- Word Popup Overlay (3-second display) -->
+    <!-- Word Popup Overlay (6-second display) -->
     <div class="overlay popup-overlay" id="popup-overlay">
         <div class="popup-card">
             <p class="popup-label" id="popup-label">Word chosen by <span id="popup-picker"></span></p>
             <div class="popup-word" id="popup-word"></div>
             <div class="popup-timer-bar">
                 <div class="popup-timer-fill" id="popup-timer-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Overlay -->
+    <div class="overlay exit-overlay" id="exit-overlay">
+        <div class="exit-card">
+            <h2>Leave Game?</h2>
+            <p>Are you sure you want to exit? You will be eliminated.</p>
+            <div class="exit-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('exit-overlay').classList.remove('visible')" style="flex: 1; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; padding: 10px 16px; font-size: 0.9rem;">Stay</button>
+                <button class="btn btn-primary" onclick="window.location.href='/'" style="flex: 1; background: #EF4444; padding: 10px 16px; font-size: 0.9rem;">Leave</button>
             </div>
         </div>
     </div>
@@ -71,11 +83,11 @@
                 </div>
 
                 <div class="gameover-actions" style="display: flex; gap: 12px; margin-top: 24px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto;">
-                    <button class="btn btn-secondary btn-exit-home" id="btn-exit-home" style="flex: 1; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white;">
+                    <button class="btn btn-secondary btn-exit-home" id="btn-exit-home" style="flex: 1; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; padding: 10px 16px; font-size: 0.9rem;">
                         <span class="btn-icon"><i class="ph-duotone ph-house"></i></span>
                         <span class="btn-text">Home</span>
                     </button>
-                    <button class="btn btn-primary btn-play-again" id="btn-play-again" style="flex: 2;">
+                    <button class="btn btn-primary btn-play-again" id="btn-play-again" style="flex: 2; padding: 10px 16px; font-size: 0.9rem;">
                         <span class="btn-icon"><i class="ph-duotone ph-arrows-clockwise" style="color: #FFF; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i></span>
                         <span class="btn-text">Play Again</span>
                     </button>
