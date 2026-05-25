@@ -56,23 +56,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'wordhunt.wsgi.application'
 ASGI_APPLICATION = 'wordhunt.asgi.application'
 
-# Channel Layers — Redis for production, InMemory for local dev
-REDIS_URL = os.environ.get('REDIS_URL')
-if REDIS_URL:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [REDIS_URL],
-            },
-        },
-    }
-else:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        },
-    }
+# Channel Layers — InMemory (single-server, no external dependencies)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database — SQLite (minimal usage, sessions only)
 DATABASES = {
@@ -88,7 +77,11 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Security
 CSRF_COOKIE_SECURE = not DEBUG

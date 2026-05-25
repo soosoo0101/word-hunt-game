@@ -6,6 +6,7 @@ GameConsumer — handles all in-game real-time communication.
 
 import json
 import asyncio
+import time as time_mod
 from urllib.parse import parse_qs
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .game_manager import ROOMS, GameRoom, PICKING, SHOWING, HUNTING, ROUND_END, GAME_OVER
@@ -55,15 +56,19 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             room = ROOMS[self.room_code]
             room.remove_player(self.username)
 
-            # Broadcast updated player list
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    'type': 'player_update',
-                    'players': room.get_player_list(),
-                    'creator': room.creator,
-                }
-            )
+            # If room is empty lobby, delete it to free memory
+            if room.state == 'lobby' and len(room.players) == 0:
+                del ROOMS[self.room_code]
+            else:
+                # Broadcast updated player list
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        'type': 'player_update',
+                        'players': room.get_player_list(),
+                        'creator': room.creator,
+                    }
+                )
 
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
@@ -265,7 +270,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                 break
 
             # Check each hunting player's remaining time
-            import time as time_mod
             now = time_mod.time()
             eliminations = []
 
@@ -486,6 +490,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             'board': event['board'],
             'room_code': event['room_code'],
             'creator': event['creator'],
+            'pick_start_time': event.get('pick_start_time'),
         }))
 
     async def game_over(self, event):

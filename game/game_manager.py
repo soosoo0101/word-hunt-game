@@ -14,8 +14,20 @@ from .words import get_random_board
 ROOMS = {}
 
 
+def cleanup_stale_rooms():
+    """Remove rooms that have been in GAME_OVER for more than 10 minutes."""
+    now = time.time()
+    stale = [
+        code for code, room in ROOMS.items()
+        if room.state == GAME_OVER and hasattr(room, '_game_over_time') and now - room._game_over_time > 600
+    ]
+    for code in stale:
+        del ROOMS[code]
+
+
 def generate_room_code():
     """Generate a unique 3-letter room code."""
+    cleanup_stale_rooms()
     for _ in range(100):
         code = ''.join(random.choices(string.ascii_uppercase, k=3))
         if code not in ROOMS:
@@ -129,7 +141,7 @@ class GameRoom:
         random.shuffle(self.turn_order)
 
         # Generate the board
-        self.board = get_random_board(45)
+        self.board = get_random_board(30)
 
         # Set first picker
         self.current_turn_index = 0
@@ -264,6 +276,7 @@ class GameRoom:
         if len(active) <= 1:
             winner = active[0] if active else None
             self.state = GAME_OVER
+            self._game_over_time = time.time()
             return True, winner
         return False, None
 
@@ -279,7 +292,7 @@ class GameRoom:
 
         self.current_picker = next_picker
         self.chosen_word = None
-        self.board = get_random_board(45)
+        self.board = get_random_board(30)
         self.state = PICKING
         self.pick_start_time = time.time()
 
@@ -327,3 +340,5 @@ class GameRoom:
             self.current_picker = None
             self.turn_order = []
             self.current_turn_index = 0
+            self.pick_start_time = None
+            self.show_start_time = None
