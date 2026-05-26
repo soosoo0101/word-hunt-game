@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('lobby/<str:room_code>/', views.lobby, name='lobby'),
     path('game/<str:room_code>/', views.game_view, name='game_view'),
     path('api/leaderboard/', views.api_leaderboard, name='api_leaderboard'),
+    path('sw.js', TemplateView.as_view(template_name='game/sw.js', content_type='application/javascript'), name='sw.js'),
 ]

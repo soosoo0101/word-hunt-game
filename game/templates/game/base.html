@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Word Hunt — A real-time multiplayer word-finding game for friends!">
+    <meta name="theme-color" content="#1E1E2D">
+    <link rel="manifest" href="{% static 'game/manifest.json' %}">
     <title>{% block title %}Word Hunt{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +18,19 @@
 <body>
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
 
     <!-- Screen Wake Lock -->
     <script>
@@ -39,5 +54,77 @@
             }
         });
     </script>
+    {% if request.user.is_authenticated %}
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" style="position: fixed; bottom: -100px; opacity: 0; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(30, 30, 45, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: space-between; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="{% static 'game/icons/icon-512x512.png' %}" alt="App Icon" style="width: 48px; height: 48px; border-radius: 12px;">
+            <div>
+                <h4 style="margin: 0; color: white; font-family: var(--font-display); font-size: 1.1rem;">Word Hunt</h4>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.8rem;">Install App for better experience</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button id="pwa-install-btn" style="background: var(--accent-cyan); color: #000; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-family: var(--font-display); cursor: pointer;">Install</button>
+            <button id="pwa-later-btn" style="background: transparent; color: var(--text-muted); border: none; padding: 4px; font-size: 0.75rem; cursor: pointer;">Later</button>
+        </div>
+    </div>
+
+    <!-- PWA Install Logic -->
+    <script>
+        let deferredPrompt;
+        const installPrompt = document.getElementById('pwa-install-prompt');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const laterBtn = document.getElementById('pwa-later-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome from automatically showing the default prompt
+            e.preventDefault();
+            
+            // Check if user clicked later recently
+            const laterTime = localStorage.getItem('pwa-install-later-time');
+            if (laterTime) {
+                const daysPassed = (Date.now() - parseInt(laterTime)) / (1000 * 60 * 60 * 24);
+                if (daysPassed < 1) {
+                    return; // Hide it if it hasn't been 1 day yet
+                }
+            }
+
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show the custom prompt after a small delay
+            setTimeout(() => {
+                installPrompt.style.bottom = '20px';
+                installPrompt.style.opacity = '1';
+            }, 1500);
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the native install prompt
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            } else {
+                // If deferredPrompt is null (e.g. testing locally), just hide it
+                alert("App installation will trigger on a secure connection!");
+            }
+            installPrompt.style.bottom = '-100px';
+            installPrompt.style.opacity = '0';
+        });
+
+        laterBtn.addEventListener('click', () => {
+            installPrompt.style.bottom = '-100px';
+            installPrompt.style.opacity = '0';
+            // Save preference with a timestamp
+            localStorage.setItem('pwa-install-later-time', Date.now().toString());
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            installPrompt.style.display = 'none';
+        });
+    </script>
+    {% endif %}
 </body>
 </html>
