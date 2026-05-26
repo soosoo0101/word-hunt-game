@@ -199,7 +199,10 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-family: var(--font-display); font-weight: bold; font-size: 1.2rem; color: #60A5FA; width: 24px; text-align: center;">${rankDisplay}</span>
-                            <span style="font-weight: bold; color: var(--text-primary); font-size: 1.1rem;">${p.username}</span>
+                            <span style="font-weight: bold; color: var(--text-primary); font-size: 1.1rem;">
+                                ${p.username}
+                                ${p.username === '{{ username|escapejs }}' ? '<span style="color: var(--accent-cyan); font-size: 0.85rem; margin-left: 4px;">(You)</span>' : ''}
+                            </span>
                         </div>
                         <span style="color: var(--accent-green); font-weight: bold; font-family: var(--font-display);">${p.total_earned_seconds}s</span>
                     </div>
