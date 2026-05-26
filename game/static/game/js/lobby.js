@@ -133,7 +133,8 @@
         "Soochan": { emoji: "🐼", color: "rgba(52,211,153,0.2)" },
         "Mile": { emoji: "🐱", color: "rgba(255,107,157,0.2)" },
         "Kamila": { emoji: "🐱", color: "rgba(255,107,157,0.2)" },
-        "Poocha": { emoji: "🐱", color: "rgba(255,107,157,0.2)" }
+        "Poocha": { emoji: "🐱", color: "rgba(255,107,157,0.2)" },
+        "Neko": { emoji: "🐱", color: "rgba(255,107,157,0.2)" }
     };
 
     function getAvatarForName(name) {
